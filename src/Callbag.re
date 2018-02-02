@@ -122,3 +122,15 @@ let skip = (max, source, start) =>
     );
   | _ => ()
   };
+
+let map = (f, source, start) =>
+  switch start {
+  | Start(sink) => 
+    source(Start((t) => {
+      switch t {
+      | Data(d) => sink(Data(f(d)));
+      | _ => ();
+      };
+    }));
+  | _ => ();
+  }

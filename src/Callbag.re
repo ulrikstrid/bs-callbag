@@ -102,3 +102,23 @@ let filter = (pred, source, start) =>
     ));
   | _ => ()
   };
+
+let skip = (max, source, start) =>
+  switch start {
+  | Start(sink) =>
+    let skiped = ref(0);
+    source(
+      Start(
+        _type =>
+          switch _type {
+          | Start(_) =>
+            sink(_type);
+          | Data(data) =>
+            skiped := skiped^ + 1;
+            if (max < skiped^) sink(Data(data));
+          | _ => sink(_type)
+          }
+      )
+    );
+  | _ => ()
+  };

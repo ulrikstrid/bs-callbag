@@ -17,41 +17,36 @@ let observe = (operation, source) => {
 };
 
 let interval = (period, _type) => {
-  let timeoutId = ref(None);
-  let continue = ref(true);
+  let intervalId = ref(None);
+  let num = ref(0);
   switch _type {
   | Start(sink) =>
-    let rec startInterval = (num, callbag) => {
-      timeoutId :=
+      intervalId :=
         Some(
-          Js.Global.setTimeout(
+          Js.Global.setInterval(
             () => {
-              callbag(Data(num));
-              if (continue^) startInterval(num + 1, callbag);
+              sink(Data(num^));
+              num := num^ + 1;
             },
             period
           )
         );
+      sink(
+        Start(
+          _type =>
+            switch _type {
+            | End =>
+              switch intervalId^ {
+              | Some(id) => {
+                Js.Global.clearInterval(id);
+              }
+              | None => ()
+              }
+            | _ => ()
+            }
+        )
+      );
       ();
-    };
-    sink(
-      Start(
-        _type =>
-          switch _type {
-          | End =>
-            switch timeoutId^ {
-            | Some(id) => {
-              Js.Global.clearTimeout(id);
-              continue := false;
-            }
-            | None => ()
-            }
-          | _ => ()
-          }
-      )
-    );
-    startInterval(0, sink);
-    ();
   | _ => ()
   };
 };

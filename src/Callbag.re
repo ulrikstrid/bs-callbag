@@ -86,5 +86,3 @@ let take = (max, source, start) =>
     );
   | _ => ()
   };
-
-interval(1000) |> take(2) |> observe(d => Js.log(d));

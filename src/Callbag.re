@@ -1,5 +1,5 @@
-type callbagType('callbag, 'data) =
-  | Start('callbag)
+type callbagType('data) =
+  | Start(callbagType('data) => unit)
   | Data('data)
   | End;
 

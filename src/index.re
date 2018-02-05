@@ -6,3 +6,6 @@ Callbag.interval(100)
 |> Callbag.map(Js.Int.toString)
 |> Callbag.map(Js.String.charAt(0))
 |> Callbag.observe(d => Js.log(d));
+
+Callbag.fromArray([|1, 2, 3 ,4|])
+|> Callbag.observe(d => Js.log(d));

@@ -41,6 +41,15 @@ let interval = (period, _type) => {
   };
 };
 
+let fromArray = (source: array('a), _type) => {
+  switch _type {
+  | Start(sink) => {
+    Array.iter(a => sink(Data(a)), source)
+  }
+  | _ => ();
+  }
+};
+
 let take = (max, source, start) =>
   switch start {
   | Start(sink) =>

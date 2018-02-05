@@ -17,34 +17,26 @@ let observe = (operation, source) => {
 };
 
 let interval = (period, _type) => {
-  let intervalId = ref(None);
   let num = ref(0);
   switch _type {
   | Start(sink) =>
-    intervalId :=
-      Some(
-        Js.Global.setInterval(
-          () => {
-            sink(Data(num^));
-            num := num^ + 1;
-          },
-          period
-        )
+    let intervalId =
+      Js.Global.setInterval(
+        () => {
+          sink(Data(num^));
+          num := num^ + 1;
+        },
+        period
       );
     sink(
       Start(
-        _type =>
-          switch _type {
-          | End =>
-            switch intervalId^ {
-            | Some(id) => Js.Global.clearInterval(id)
-            | None => ()
-            }
+        t =>
+          switch t {
+          | End => Js.Global.clearInterval(intervalId)
           | _ => ()
           }
       )
     );
-    ();
   | _ => ()
   };
 };
@@ -89,17 +81,20 @@ let take = (max, source, start) =>
 let filter = (pred, source, start) =>
   switch start {
   | Start(sink) =>
-    source(Start(_type =>
-      switch _type {
-      | Start(_) => sink(_type);
-      | Data(d) =>
-        if (pred(d)) {
-          sink(_type);
-        };
-        ();
-      | _ => ()
-      }
-    ));
+    source(
+      Start(
+        _type =>
+          switch _type {
+          | Start(_) => sink(_type)
+          | Data(d) =>
+            if (pred(d)) {
+              sink(_type);
+            };
+            ();
+          | _ => ()
+          }
+      )
+    )
   | _ => ()
   };
 
@@ -111,11 +106,12 @@ let skip = (max, source, start) =>
       Start(
         _type =>
           switch _type {
-          | Start(_) =>
-            sink(_type);
+          | Start(_) => sink(_type)
           | Data(data) =>
             skiped := skiped^ + 1;
-            if (max < skiped^) sink(Data(data));
+            if (max < skiped^) {
+              sink(Data(data));
+            };
           | _ => sink(_type)
           }
       )
@@ -125,12 +121,15 @@ let skip = (max, source, start) =>
 
 let map = (f, source, start) =>
   switch start {
-  | Start(sink) => 
-    source(Start((t) => {
-      switch t {
-      | Data(d) => sink(Data(f(d)));
-      | _ => ();
-      };
-    }));
-  | _ => ();
-  }
+  | Start(sink) =>
+    source(
+      Start(
+        t =>
+          switch t {
+          | Data(d) => sink(Data(f(d)))
+          | _ => ()
+          }
+      )
+    )
+  | _ => ()
+  };

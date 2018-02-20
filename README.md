@@ -4,7 +4,7 @@ This is my try at implementing the [callbag spec](https://github.com/callbag/cal
 
 ## Example
 
-```re
+```ocaml
 Callbag.interval(1000) |> Callbag.take(3) |> Callbag.observe(d => Js.log(d));
 ```
 

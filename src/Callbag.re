@@ -16,45 +16,41 @@ let observe = (operation, source) => {
   ();
 };
 
-let interval = (period, _type) => {
-  let num = ref(0);
-  switch _type {
-  | Start(sink) =>
-    let intervalId =
-      Js.Global.setInterval(
-        () => {
-          sink(Data(num^));
-          num := num^ + 1;
-        },
-        period
-      );
-    sink(
-      Start(
-        t =>
-          switch t {
-          | End => Js.Global.clearInterval(intervalId)
-          | _ => ()
+/* not complete */
+let forEach = (operation, source) => {
+  let talkback = ref(None);
+  source(
+    Start(
+      t => {
+        switch t {
+        | Start(x) =>
+          talkback := Some(x);
+        | Data(d) =>
+          operation(d);
+          switch talkback^ {
+          | Some(tb) =>
+            tb(t);
+            ();
+          | _ => ();
           }
-      )
-    );
+        | _ => ()
+        }
+      }
+    )
+  );
+};
+
+let fromArray = (source: array('a), _type) =>
+  switch _type {
+  | Start(sink) => Array.iter(a => sink(Data(a)), source)
   | _ => ()
   };
-};
 
-let fromArray = (source: array('a), _type) => {
+let fromCallback = (source, _type) =>
   switch _type {
-  | Start(sink) =>
-    Array.iter(a => sink(Data(a)), source);
-  | _ => ();
+  | Start(sink) => source(a => sink(Data(a)))
+  | _ => ()
   };
-};
-
-let fromCallback = (source, _type) => {
-  switch _type {
-  | Start(sink) => source(a => sink(Data(a)));
-  | _ => ();
-  };
-};
 
 let take = (max, source, start) =>
   switch start {
